@@ -10,8 +10,7 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
- */
-            var f = __webpack_require__(540), k = Symbol.for("react.element"), l = Symbol.for("react.fragment"), m = Object.prototype.hasOwnProperty, n = f.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner, p = {
+ */            var f = __webpack_require__(540), k = Symbol.for("react.element"), l = Symbol.for("react.fragment"), m = Object.prototype.hasOwnProperty, n = f.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner, p = {
                 key: !0,
                 ref: !0,
                 __self: !0,
@@ -33,7 +32,7 @@
                     _owner: n.current
                 };
             }
-            0;
+            exports.Fragment = l;
             exports.jsx = q;
             exports.jsxs = q;
         },
@@ -9928,20 +9927,267 @@
             return ServerMode2;
         })(ServerMode || {});
         new Set([ ...NO_BODY_STATUS_CODES, 304 ]);
+        var jsx_runtime = __webpack_require__(848);
+        "use client";
+        const LayoutGroupContext = (0, react.createContext)({});
+        function useConstant(init) {
+            const ref = (0, react.useRef)(null);
+            if (ref.current === null) ref.current = init();
+            return ref.current;
+        }
+        const is_browser_isBrowser = typeof window !== "undefined";
+        const use_isomorphic_effect_useIsomorphicLayoutEffect = is_browser_isBrowser ? react.useLayoutEffect : react.useEffect;
+        "use client";
+        const PresenceContext_PresenceContext = (0, react.createContext)(null);
+        function is_object_isObject(value) {
+            return typeof value === "object" && value !== null;
+        }
+        function isHTMLElement(element) {
+            return is_object_isObject(element) && "offsetHeight" in element;
+        }
+        "use client";
+        const MotionConfigContext = (0, react.createContext)({
+            transformPagePoint: p => p,
+            isStatic: false,
+            reducedMotion: "never"
+        });
+        "use client";
+        class PopChildMeasure extends react.Component {
+            getSnapshotBeforeUpdate(prevProps) {
+                const element = this.props.childRef.current;
+                if (element && prevProps.isPresent && !this.props.isPresent) {
+                    const parent = element.offsetParent;
+                    const parentWidth = isHTMLElement(parent) ? parent.offsetWidth || 0 : 0;
+                    const size = this.props.sizeRef.current;
+                    size.height = element.offsetHeight || 0;
+                    size.width = element.offsetWidth || 0;
+                    size.top = element.offsetTop;
+                    size.left = element.offsetLeft;
+                    size.right = parentWidth - size.width - size.left;
+                }
+                return null;
+            }
+            componentDidUpdate() {}
+            render() {
+                return this.props.children;
+            }
+        }
+        function PopChild({children, isPresent, anchorX, root}) {
+            const id = (0, react.useId)();
+            const ref = (0, react.useRef)(null);
+            const size = (0, react.useRef)({
+                width: 0,
+                height: 0,
+                top: 0,
+                left: 0,
+                right: 0
+            });
+            const {nonce} = (0, react.useContext)(MotionConfigContext);
+            (0, react.useInsertionEffect)(() => {
+                const {width, height, top, left, right} = size.current;
+                if (isPresent || !ref.current || !width || !height) return;
+                const x = anchorX === "left" ? `left: ${left}` : `right: ${right}`;
+                ref.current.dataset.motionPopId = id;
+                const style = document.createElement("style");
+                if (nonce) style.nonce = nonce;
+                const parent = root ?? document.head;
+                parent.appendChild(style);
+                if (style.sheet) style.sheet.insertRule(`\n          [data-motion-pop-id="${id}"] {\n            position: absolute !important;\n            width: ${width}px !important;\n            height: ${height}px !important;\n            ${x}px !important;\n            top: ${top}px !important;\n          }\n        `);
+                return () => {
+                    parent.removeChild(style);
+                    if (parent.contains(style)) parent.removeChild(style);
+                };
+            }, [ isPresent ]);
+            return (0, jsx_runtime.jsx)(PopChildMeasure, {
+                isPresent,
+                childRef: ref,
+                sizeRef: size,
+                children: react.cloneElement(children, {
+                    ref
+                })
+            });
+        }
+        "use client";
+        const PresenceChild = ({children, initial, isPresent, onExitComplete, custom, presenceAffectsLayout, mode, anchorX, root}) => {
+            const presenceChildren = useConstant(newChildrenMap);
+            const id = (0, react.useId)();
+            let isReusedContext = true;
+            let context = (0, react.useMemo)(() => {
+                isReusedContext = false;
+                return {
+                    id,
+                    initial,
+                    isPresent,
+                    custom,
+                    onExitComplete: childId => {
+                        presenceChildren.set(childId, true);
+                        for (const isComplete of presenceChildren.values()) if (!isComplete) return;
+                        onExitComplete && onExitComplete();
+                    },
+                    register: childId => {
+                        presenceChildren.set(childId, false);
+                        return () => presenceChildren.delete(childId);
+                    }
+                };
+            }, [ isPresent, presenceChildren, onExitComplete ]);
+            if (presenceAffectsLayout && isReusedContext) context = {
+                ...context
+            };
+            (0, react.useMemo)(() => {
+                presenceChildren.forEach((_, key) => presenceChildren.set(key, false));
+            }, [ isPresent ]);
+            react.useEffect(() => {
+                !isPresent && !presenceChildren.size && onExitComplete && onExitComplete();
+            }, [ isPresent ]);
+            if (mode === "popLayout") children = (0, jsx_runtime.jsx)(PopChild, {
+                isPresent,
+                anchorX,
+                root,
+                children
+            });
+            return (0, jsx_runtime.jsx)(PresenceContext_PresenceContext.Provider, {
+                value: context,
+                children
+            });
+        };
+        function newChildrenMap() {
+            return new Map;
+        }
+        function usePresence(subscribe = true) {
+            const context = (0, react.useContext)(PresenceContext_PresenceContext);
+            if (context === null) return [ true, null ];
+            const {isPresent, onExitComplete, register} = context;
+            const id = (0, react.useId)();
+            (0, react.useEffect)(() => {
+                if (subscribe) return register(id);
+            }, [ subscribe ]);
+            const safeToRemove = (0, react.useCallback)(() => subscribe && onExitComplete && onExitComplete(id), [ id, onExitComplete, subscribe ]);
+            return !isPresent && onExitComplete ? [ false, safeToRemove ] : [ true ];
+        }
+        const getChildKey = child => child.key || "";
+        function onlyElements(children) {
+            const filtered = [];
+            react.Children.forEach(children, child => {
+                if ((0, react.isValidElement)(child)) filtered.push(child);
+            });
+            return filtered;
+        }
+        "use client";
+        const AnimatePresence = ({children, custom, initial = true, onExitComplete, presenceAffectsLayout = true, mode = "sync", propagate = false, anchorX = "left", root}) => {
+            const [isParentPresent, safeToRemove] = usePresence(propagate);
+            const presentChildren = (0, react.useMemo)(() => onlyElements(children), [ children ]);
+            const presentKeys = propagate && !isParentPresent ? [] : presentChildren.map(getChildKey);
+            const isInitialRender = (0, react.useRef)(true);
+            const pendingPresentChildren = (0, react.useRef)(presentChildren);
+            const exitComplete = useConstant(() => new Map);
+            const [diffedChildren, setDiffedChildren] = (0, react.useState)(presentChildren);
+            const [renderedChildren, setRenderedChildren] = (0, react.useState)(presentChildren);
+            use_isomorphic_effect_useIsomorphicLayoutEffect(() => {
+                isInitialRender.current = false;
+                pendingPresentChildren.current = presentChildren;
+                for (let i = 0; i < renderedChildren.length; i++) {
+                    const key = getChildKey(renderedChildren[i]);
+                    if (!presentKeys.includes(key)) {
+                        if (exitComplete.get(key) !== true) exitComplete.set(key, false);
+                    } else exitComplete.delete(key);
+                }
+            }, [ renderedChildren, presentKeys.length, presentKeys.join("-") ]);
+            const exitingChildren = [];
+            if (presentChildren !== diffedChildren) {
+                let nextChildren = [ ...presentChildren ];
+                for (let i = 0; i < renderedChildren.length; i++) {
+                    const child = renderedChildren[i];
+                    const key = getChildKey(child);
+                    if (!presentKeys.includes(key)) {
+                        nextChildren.splice(i, 0, child);
+                        exitingChildren.push(child);
+                    }
+                }
+                if (mode === "wait" && exitingChildren.length) nextChildren = exitingChildren;
+                setRenderedChildren(onlyElements(nextChildren));
+                setDiffedChildren(presentChildren);
+                return null;
+            }
+            if (false) ;
+            const {forceRender} = (0, react.useContext)(LayoutGroupContext);
+            return (0, jsx_runtime.jsx)(jsx_runtime.Fragment, {
+                children: renderedChildren.map(child => {
+                    const key = getChildKey(child);
+                    const isPresent = propagate && !isParentPresent ? false : presentChildren === renderedChildren || presentKeys.includes(key);
+                    const onExit = () => {
+                        if (exitComplete.has(key)) exitComplete.set(key, true); else return;
+                        let isEveryExitComplete = true;
+                        exitComplete.forEach(isExitComplete => {
+                            if (!isExitComplete) isEveryExitComplete = false;
+                        });
+                        if (isEveryExitComplete) {
+                            forceRender?.();
+                            setRenderedChildren(pendingPresentChildren.current);
+                            propagate && safeToRemove?.();
+                            onExitComplete && onExitComplete();
+                        }
+                    };
+                    return (0, jsx_runtime.jsx)(PresenceChild, {
+                        isPresent,
+                        initial: !isInitialRender.current || initial ? void 0 : false,
+                        custom,
+                        presenceAffectsLayout,
+                        mode,
+                        root,
+                        onExitComplete: isPresent ? void 0 : onExit,
+                        anchorX,
+                        children: child
+                    }, key);
+                })
+            });
+        };
         var prop_types = __webpack_require__(556);
         var prop_types_default = __webpack_require__.n(prop_types);
-        const Menu = ({items, onItemClick}) => react.createElement("nav", {
-            className: "header__nav"
-        }, react.createElement("ul", {
-            className: "header__list text-s"
-        }, items.map(({label, href}, idx) => react.createElement("li", {
-            key: `${href}-${idx}`,
-            className: "header__item"
-        }, react.createElement(Link, {
-            to: href,
-            className: "header__link",
-            onClick: onItemClick
-        }, label)))));
+        function useAnchorNavigate() {
+            const navigate = useNavigate();
+            const location = useLocation();
+            const goToAnchor = (e, href) => {
+                e.preventDefault();
+                if (!href.startsWith("#")) {
+                    navigate(href);
+                    return;
+                }
+                const targetId = href.slice(1);
+                if (location.pathname !== "/") {
+                    navigate("/");
+                    setTimeout(() => {
+                        const target = document.getElementById(targetId);
+                        if (target) target.scrollIntoView({
+                            behavior: "smooth"
+                        });
+                    }, 300);
+                } else {
+                    const target = document.getElementById(targetId);
+                    if (target) target.scrollIntoView({
+                        behavior: "smooth"
+                    });
+                }
+            };
+            return goToAnchor;
+        }
+        const Menu = ({items, onItemClick}) => {
+            const goToAnchor = useAnchorNavigate();
+            return react.createElement("nav", {
+                className: "header__nav"
+            }, react.createElement("ul", {
+                className: "header__list text-s"
+            }, items.map(({label, href}, idx) => react.createElement("li", {
+                key: `${href}-${idx}`,
+                className: "header__item"
+            }, react.createElement("a", {
+                href,
+                className: "header__link",
+                onClick: e => {
+                    goToAnchor(e, href);
+                    if (onItemClick) onItemClick();
+                }
+            }, label)))));
+        };
         Menu.propTypes = {
             items: prop_types_default().arrayOf(prop_types_default().shape({
                 label: prop_types_default().string.isRequired,
@@ -9952,19 +10198,19 @@
         const common_Menu = Menu;
         const menuItems = [ {
             label: "About us",
-            href: "#"
+            href: "#about-us"
         }, {
             label: "Solutions+",
             href: "/solutions"
         }, {
             label: "Benefits",
-            href: "#"
+            href: "#benefits"
         }, {
             label: "News & events",
-            href: "#"
+            href: "#news"
         }, {
             label: "Contacts",
-            href: "#"
+            href: "#contacts"
         } ];
         function Header() {
             const [menuOpen, setMenuOpen] = (0, react.useState)(false);
@@ -10059,21 +10305,22 @@
         }
         const FooterNav_menuItems = [ {
             label: "About us",
-            href: "#"
+            href: "#about-us"
         }, {
             label: "Solutions+",
             href: "/solutions"
         }, {
             label: "Benefits",
-            href: "#"
+            href: "#benefits"
         }, {
             label: "News & events",
-            href: "#"
+            href: "#news"
         }, {
             label: "Contacts",
-            href: "#"
+            href: "#contacts"
         } ];
         function FooterNav() {
+            const goToAnchor = useAnchorNavigate();
             return react.createElement("nav", {
                 className: "footer__nav"
             }, react.createElement("ul", {
@@ -10081,9 +10328,10 @@
             }, FooterNav_menuItems.map((item, i) => react.createElement("li", {
                 key: i,
                 className: "footer__item"
-            }, react.createElement(Link, {
-                to: item.href,
-                className: "footer__link"
+            }, react.createElement("a", {
+                href: item.href,
+                className: "footer__link",
+                onClick: e => goToAnchor(e, item.href)
             }, item.label)))));
         }
         const socials = [ {
@@ -10124,78 +10372,87 @@
                 className: "footer__year"
             }, (new Date).getFullYear()), " ", "Spinree.com")));
         }
-        const MainSection = () => react.createElement("section", {
-            className: "main"
-        }, react.createElement("div", {
-            className: "main__container blur-1 blur-2"
-        }, react.createElement("div", {
-            className: "main__content"
-        }, react.createElement("h1", {
-            className: "main__title"
-        }, "Tech that performs, ", react.createElement("span", null, "partnerships"), " that win!"), react.createElement("div", {
-            className: "main__text"
-        }, "All-in-one and white-label online casino solutions — partnering for success!"), react.createElement("a", {
-            href: "#",
-            className: "main__button btn"
-        }, react.createElement("div", {
-            className: "btn__icon _icon-arrow-down"
-        }), react.createElement("div", {
-            className: "btn__text"
-        }, "send a request"))), react.createElement("div", {
-            className: "main__backgrounds"
-        }, react.createElement("div", {
-            className: "main__background main__background-1"
-        }, react.createElement("picture", null, react.createElement("source", {
-            media: "(max-width: 767.98px)",
-            srcSet: "img/main/main_image-01_mob.png"
-        }), react.createElement("source", {
-            media: "(min-width: 767.98px)",
-            srcSet: "img/main/main_image-01_pc.png"
-        }), react.createElement("img", {
-            src: "img/main/main_image-01_pc.png",
-            alt: ""
-        }))), react.createElement("div", {
-            className: "main__background main__background-2"
-        }, react.createElement("picture", null, react.createElement("source", {
-            media: "(max-width: 767.98px)",
-            srcSet: "img/main/main_image-02_mob.png"
-        }), react.createElement("source", {
-            media: "(min-width: 767.98px)",
-            srcSet: "img/main/main_image-02_pc.png"
-        }), react.createElement("img", {
-            src: "img/main/main_image-02_pc.png",
-            alt: ""
-        }))))));
+        const MainSection = () => {
+            const goToAnchor = useAnchorNavigate();
+            return react.createElement("section", {
+                className: "main"
+            }, react.createElement("div", {
+                className: "main__container blur-1 blur-2"
+            }, react.createElement("div", {
+                className: "main__content"
+            }, react.createElement("h1", {
+                className: "main__title"
+            }, "Tech that performs, ", react.createElement("span", null, "partnerships"), " that win!"), react.createElement("div", {
+                className: "main__text"
+            }, "All-in-one and white-label online casino solutions — partnering for success!"), react.createElement("a", {
+                href: "#contacts",
+                className: "main__button btn",
+                onClick: e => goToAnchor(e, "#contacts")
+            }, react.createElement("div", {
+                className: "btn__icon _icon-arrow-down"
+            }), react.createElement("div", {
+                className: "btn__text"
+            }, "send a request"))), react.createElement("div", {
+                className: "main__backgrounds"
+            }, react.createElement("div", {
+                className: "main__background main__background-1"
+            }, react.createElement("picture", null, react.createElement("source", {
+                media: "(max-width: 767.98px)",
+                srcSet: "img/main/main_image-01_mob.webp"
+            }), react.createElement("source", {
+                media: "(min-width: 767.98px)",
+                srcSet: "img/main/main_image-01_pc.webp"
+            }), react.createElement("img", {
+                src: "img/main/main_image-01_pc.webp",
+                alt: ""
+            }))), react.createElement("div", {
+                className: "main__background main__background-2"
+            }, react.createElement("picture", null, react.createElement("source", {
+                media: "(max-width: 767.98px)",
+                srcSet: "img/main/main_image-02_mob.webp"
+            }), react.createElement("source", {
+                media: "(min-width: 767.98px)",
+                srcSet: "img/main/main_image-02_pc.webp"
+            }), react.createElement("img", {
+                src: "img/main/main_image-02_pc.webp",
+                alt: ""
+            }))))));
+        };
         const homepage_MainSection = MainSection;
-        const PromoSection = () => react.createElement("section", {
-            className: "promo"
-        }, react.createElement("div", {
-            className: "promo__container"
-        }, react.createElement("div", {
-            className: "promo__main"
-        }, react.createElement("div", {
-            className: "promo__icon _icon-switch"
-        }, react.createElement("span", null)), react.createElement("div", {
-            className: "promo__top"
-        }, react.createElement("div", {
-            className: "promo__title title-l"
-        }, "Get your Online Casino, Live in ", react.createElement("span", null, "3-5 Weeks!")), react.createElement("div", {
-            className: "promo__text text-mob"
-        }, "SpinRee is more than just a platform — it's a comprehensive solution tailored to meet the full spectrum of iGaming business needs.")), react.createElement("div", {
-            className: "promo__info info-promo"
-        }, react.createElement("div", {
-            className: "info-promo__item"
-        }, react.createElement("div", {
-            className: "info-promo__title h2"
-        }, "YOUR GO-TO IGAMING TEAM"), react.createElement("div", {
-            className: "info-promo__text text-mob"
-        }, "From start to finish, we handle absolutely EVERYTHING.")), react.createElement("a", {
-            href: "#",
-            className: "info-promo__link btn-secondary"
-        }, "about us"))), react.createElement("div", {
-            className: "promo__bg"
-        })));
-        const homepage_PromoSection = PromoSection;
+        const PromoSection = () => {
+            const goToAnchor = useAnchorNavigate();
+            return react.createElement("section", {
+                id: "about-us",
+                className: "about-us"
+            }, react.createElement("div", {
+                className: "about-us__container"
+            }, react.createElement("div", {
+                className: "about-us__main"
+            }, react.createElement("div", {
+                className: "about-us__icon _icon-switch"
+            }, react.createElement("span", null)), react.createElement("div", {
+                className: "about-us__top"
+            }, react.createElement("div", {
+                className: "about-us__title title-l"
+            }, "Get your Online Casino, Live in ", react.createElement("span", null, "3-5 Weeks!")), react.createElement("div", {
+                className: "about-us__text text-mob"
+            }, "SpinRee is more than just a platform — it's a comprehensive solution tailored to meet the full spectrum of iGaming business needs.")), react.createElement("div", {
+                className: "about-us__info info-about"
+            }, react.createElement("div", {
+                className: "info-about__item"
+            }, react.createElement("div", {
+                className: "info-about__title h2"
+            }, "YOUR GO-TO IGAMING TEAM"), react.createElement("div", {
+                className: "info-about__text text-mob"
+            }, "From start to finish, we handle absolutely EVERYTHING.")), react.createElement("a", {
+                href: "#about-us",
+                className: "info-about__link btn-secondary",
+                onClick: e => goToAnchor(e, "#about-us")
+            }, "about us"))), react.createElement("div", {
+                className: "about-us__bg"
+            })));
+        };
+        const AboutSection = PromoSection;
         const ServicesSection = () => react.createElement("section", {
             className: "services"
         }, react.createElement("div", {
@@ -10227,22 +10484,22 @@
         }, react.createElement("div", {
             className: "services__image services__image-1"
         }, react.createElement("img", {
-            src: "img/main/mastercard.png",
+            src: "img/main/mastercard.webp",
             alt: ""
         })), react.createElement("div", {
             className: "services__image services__image-2"
         }, react.createElement("img", {
-            src: "img/main/visa.png",
+            src: "img/main/visa.webp",
             alt: ""
         })), react.createElement("div", {
             className: "services__image services__image-3"
         }, react.createElement("img", {
-            src: "img/main/upi.png",
+            src: "img/main/upi.webp",
             alt: ""
         })), react.createElement("div", {
             className: "services__image services__image-4"
         }, react.createElement("img", {
-            src: "img/main/pix.png",
+            src: "img/main/pix.webp",
             alt: ""
         }))), react.createElement("div", {
             className: "services__more text-m"
@@ -10263,22 +10520,22 @@
         }, react.createElement("div", {
             className: "services__image services__image-5"
         }, react.createElement("img", {
-            src: "img/main/evolution.png",
+            src: "img/main/evolution.webp",
             alt: ""
         })), react.createElement("div", {
             className: "services__image services__image-6"
         }, react.createElement("img", {
-            src: "img/main/playtech.png",
+            src: "img/main/playtech.webp",
             alt: ""
         })), react.createElement("div", {
             className: "services__image services__image-7"
         }, react.createElement("img", {
-            src: "img/main/pragmatikplay.png",
+            src: "img/main/pragmatikplay.webp",
             alt: ""
         })), react.createElement("div", {
             className: "services__image services__image-8"
         }, react.createElement("img", {
-            src: "img/main/playngo.png",
+            src: "img/main/playngo.webp",
             alt: ""
         })))))), react.createElement("div", {
             className: "services__column segmentation"
@@ -10291,7 +10548,7 @@
         }, "core"), react.createElement("div", {
             className: "segmentation__bg"
         }, react.createElement("img", {
-            src: "img/main/services_image-01_pc.png",
+            src: "img/main/services_image-01_pc.webp",
             alt: ""
         }))), react.createElement("div", {
             className: "segmentation__bottom"
@@ -10300,7 +10557,7 @@
         }, react.createElement("div", {
             className: "segmentation__image"
         }, react.createElement("img", {
-            src: "img/main/diagram.png",
+            src: "img/main/diagram.webp",
             alt: ""
         })), react.createElement("div", {
             className: "segmentation__bottom-title"
@@ -10338,43 +10595,48 @@
             className: "services__text text-l"
         }, "Managment"))))))));
         const homepage_ServicesSection = ServicesSection;
-        const AdvantagesSection = () => react.createElement("section", {
-            className: "advantages"
+        const BenefitsSection = () => react.createElement("section", {
+            id: "benefits",
+            className: "benefits"
         }, react.createElement("div", {
-            className: "advantages__container"
+            className: "benefits__container"
         }, react.createElement("div", {
-            className: "advantages__title h2"
+            className: "benefits__title h2"
         }, "Why choose us?"), react.createElement("div", {
-            className: "advantages__wrapper"
+            className: "benefits__wrapper"
         }, react.createElement("div", {
-            className: "advantages__item"
+            className: "benefits__item"
         }, react.createElement("span", null, "INNOVATION")), react.createElement("div", {
-            className: "advantages__item"
+            className: "benefits__item"
         }, react.createElement("span", null, "RELIABILITY")), react.createElement("div", {
-            className: "advantages__item"
+            className: "benefits__item"
         }, react.createElement("span", null, "SCAPABILITY")), react.createElement("div", {
-            className: "advantages__item"
+            className: "benefits__item"
         }, react.createElement("span", null, "HIGH PERFORMANCE")))));
-        const homepage_AdvantagesSection = AdvantagesSection;
-        const NewsSlide = ({image, title, date}) => react.createElement("div", {
-            className: "news__slide"
-        }, react.createElement("div", {
-            className: "news__image"
-        }, react.createElement("img", {
-            src: image,
-            alt: title
-        })), react.createElement("div", {
-            className: "news__content"
-        }, react.createElement("div", {
-            className: "news__main"
-        }, react.createElement("div", {
-            className: "news__subtitle"
-        }, title), react.createElement("div", {
-            className: "news__date"
-        }, date)), react.createElement("a", {
-            href: "#",
-            className: "news__button"
-        }, "book the meeting")));
+        const homepage_BenefitsSection = BenefitsSection;
+        const NewsSlide = ({image, title, date}) => {
+            const goToAnchor = useAnchorNavigate();
+            return react.createElement("div", {
+                className: "news__slide"
+            }, react.createElement("div", {
+                className: "news__image"
+            }, react.createElement("img", {
+                src: image,
+                alt: title
+            })), react.createElement("div", {
+                className: "news__content"
+            }, react.createElement("div", {
+                className: "news__main"
+            }, react.createElement("div", {
+                className: "news__subtitle"
+            }, title), react.createElement("div", {
+                className: "news__date"
+            }, date)), react.createElement("a", {
+                href: "#contacts",
+                className: "news__button",
+                onClick: e => goToAnchor(e, "#contacts")
+            }, "book the meeting")));
+        };
         const homepage_NewsSlide = NewsSlide;
         function ssr_window_esm_isObject(obj) {
             return obj !== null && typeof obj === "object" && "constructor" in obj && obj.constructor === Object;
@@ -10614,6 +10876,9 @@
                 swiper.cssModeFrameID = window.requestAnimationFrame(animate);
             };
             animate();
+        }
+        function utils_getSlideTransformEl(slideEl) {
+            return slideEl.querySelector(".swiper-slide-transform") || slideEl.shadowRoot && slideEl.shadowRoot.querySelector(".swiper-slide-transform") || slideEl;
         }
         function utils_elementChildren(element, selector) {
             if (selector === void 0) selector = "";
@@ -11911,19 +12176,14 @@
             if (swiper.destroyed) return;
             const {params, slidesEl} = swiper;
             const slidesPerView = params.slidesPerView === "auto" ? swiper.slidesPerViewDynamic() : params.slidesPerView;
-            let slideToIndex = swiper.clickedIndex;
+            let slideToIndex = swiper.getSlideIndexWhenGrid(swiper.clickedIndex);
             let realIndex;
             const slideSelector = swiper.isElement ? `swiper-slide` : `.${params.slideClass}`;
+            const isGrid = swiper.grid && swiper.params.grid && swiper.params.grid.rows > 1;
             if (params.loop) {
                 if (swiper.animating) return;
                 realIndex = parseInt(swiper.clickedSlide.getAttribute("data-swiper-slide-index"), 10);
-                if (params.centeredSlides) if (slideToIndex < swiper.loopedSlides - slidesPerView / 2 || slideToIndex > swiper.slides.length - swiper.loopedSlides + slidesPerView / 2) {
-                    swiper.loopFix();
-                    slideToIndex = swiper.getSlideIndex(utils_elementChildren(slidesEl, `${slideSelector}[data-swiper-slide-index="${realIndex}"]`)[0]);
-                    utils_nextTick(() => {
-                        swiper.slideTo(slideToIndex);
-                    });
-                } else swiper.slideTo(slideToIndex); else if (slideToIndex > swiper.slides.length - slidesPerView) {
+                if (params.centeredSlides) swiper.slideToLoop(realIndex); else if (slideToIndex > (isGrid ? (swiper.slides.length - slidesPerView) / 2 - (swiper.params.grid.rows - 1) : swiper.slides.length - slidesPerView)) {
                     swiper.loopFix();
                     slideToIndex = swiper.getSlideIndex(utils_elementChildren(slidesEl, `${slideSelector}[data-swiper-slide-index="${realIndex}"]`)[0]);
                     utils_nextTick(() => {
@@ -11951,7 +12211,18 @@
                     el.setAttribute("data-swiper-slide-index", index);
                 });
             };
+            const clearBlankSlides = () => {
+                const slides = utils_elementChildren(slidesEl, `.${params.slideBlankClass}`);
+                slides.forEach(el => {
+                    el.remove();
+                });
+                if (slides.length > 0) {
+                    swiper.recalcSlides();
+                    swiper.updateSlides();
+                }
+            };
             const gridEnabled = swiper.grid && params.grid && params.grid.rows > 1;
+            if (params.loopAddBlankSlides && (params.slidesPerGroup > 1 || gridEnabled)) clearBlankSlides();
             const slidesPerGroup = params.slidesPerGroup * (gridEnabled ? params.grid.rows : 1);
             const shouldFillGroup = swiper.slides.length % slidesPerGroup !== 0;
             const shouldFillGrid = gridEnabled && swiper.slides.length % params.grid.rows !== 0;
@@ -12006,7 +12277,7 @@
                 if (centeredSlides && slidesPerView % 2 === 0) slidesPerView += 1;
             }
             const slidesPerGroup = params.slidesPerGroupAuto ? slidesPerView : params.slidesPerGroup;
-            let loopedSlides = slidesPerGroup;
+            let loopedSlides = centeredSlides ? Math.max(slidesPerGroup, Math.ceil(slidesPerView / 2)) : slidesPerGroup;
             if (loopedSlides % slidesPerGroup !== 0) loopedSlides += slidesPerGroup - loopedSlides % slidesPerGroup;
             loopedSlides += params.loopAdditionalSlides;
             swiper.loopedSlides = loopedSlides;
@@ -13101,6 +13372,10 @@
             getSlideIndexByData(index) {
                 return this.getSlideIndex(this.slides.find(slideEl => slideEl.getAttribute("data-swiper-slide-index") * 1 === index));
             }
+            getSlideIndexWhenGrid(index) {
+                if (this.grid && this.params.grid && this.params.grid.rows > 1) if (this.params.grid.fill === "column") index = Math.floor(index / this.params.grid.rows); else if (this.params.grid.fill === "row") index %= Math.ceil(this.slides.length / this.params.grid.rows);
+                return index;
+            }
             recalcSlides() {
                 const swiper = this;
                 const {slidesEl, params} = swiper;
@@ -14118,7 +14393,7 @@
         }
         function classes_to_selector_classesToSelector(classes) {
             if (classes === void 0) classes = "";
-            return `.${classes.trim().replace(/([\.:!+\/])/g, "\\$1").replace(/ /g, ".")}`;
+            return `.${classes.trim().replace(/([\.:!+\/()[\]])/g, "\\$1").replace(/ /g, ".")}`;
         }
         function Pagination(_ref) {
             let {swiper, extendParams, on, emit} = _ref;
@@ -14864,20 +15139,153 @@
                 }
             });
         }
+        function effect_init_effectInit(params) {
+            const {effect, swiper, on, setTranslate, setTransition, overwriteParams, perspective, recreateShadows, getEffectParams} = params;
+            on("beforeInit", () => {
+                if (swiper.params.effect !== effect) return;
+                swiper.classNames.push(`${swiper.params.containerModifierClass}${effect}`);
+                if (perspective && perspective()) swiper.classNames.push(`${swiper.params.containerModifierClass}3d`);
+                const overwriteParamsResult = overwriteParams ? overwriteParams() : {};
+                Object.assign(swiper.params, overwriteParamsResult);
+                Object.assign(swiper.originalParams, overwriteParamsResult);
+            });
+            on("setTranslate _virtualUpdated", () => {
+                if (swiper.params.effect !== effect) return;
+                setTranslate();
+            });
+            on("setTransition", (_s, duration) => {
+                if (swiper.params.effect !== effect) return;
+                setTransition(duration);
+            });
+            on("transitionEnd", () => {
+                if (swiper.params.effect !== effect) return;
+                if (recreateShadows) {
+                    if (!getEffectParams || !getEffectParams().slideShadows) return;
+                    swiper.slides.forEach(slideEl => {
+                        slideEl.querySelectorAll(".swiper-slide-shadow-top, .swiper-slide-shadow-right, .swiper-slide-shadow-bottom, .swiper-slide-shadow-left").forEach(shadowEl => shadowEl.remove());
+                    });
+                    recreateShadows();
+                }
+            });
+            let requireUpdateOnVirtual;
+            on("virtualUpdate", () => {
+                if (swiper.params.effect !== effect) return;
+                if (!swiper.slides.length) requireUpdateOnVirtual = true;
+                requestAnimationFrame(() => {
+                    if (requireUpdateOnVirtual && swiper.slides && swiper.slides.length) {
+                        setTranslate();
+                        requireUpdateOnVirtual = false;
+                    }
+                });
+            });
+        }
+        function effect_target_effectTarget(effectParams, slideEl) {
+            const transformEl = utils_getSlideTransformEl(slideEl);
+            if (transformEl !== slideEl) {
+                transformEl.style.backfaceVisibility = "hidden";
+                transformEl.style["-webkit-backface-visibility"] = "hidden";
+            }
+            return transformEl;
+        }
+        function effect_virtual_transition_end_effectVirtualTransitionEnd(_ref) {
+            let {swiper, duration, transformElements, allSlides} = _ref;
+            const {activeIndex} = swiper;
+            const getSlide = el => {
+                if (!el.parentElement) {
+                    const slide = swiper.slides.find(slideEl => slideEl.shadowRoot && slideEl.shadowRoot === el.parentNode);
+                    return slide;
+                }
+                return el.parentElement;
+            };
+            if (swiper.params.virtualTranslate && duration !== 0) {
+                let eventTriggered = false;
+                let transitionEndTarget;
+                if (allSlides) transitionEndTarget = transformElements; else transitionEndTarget = transformElements.filter(transformEl => {
+                    const el = transformEl.classList.contains("swiper-slide-transform") ? getSlide(transformEl) : transformEl;
+                    return swiper.getSlideIndex(el) === activeIndex;
+                });
+                transitionEndTarget.forEach(el => {
+                    utils_elementTransitionEnd(el, () => {
+                        if (eventTriggered) return;
+                        if (!swiper || swiper.destroyed) return;
+                        eventTriggered = true;
+                        swiper.animating = false;
+                        const evt = new window.CustomEvent("transitionend", {
+                            bubbles: true,
+                            cancelable: true
+                        });
+                        swiper.wrapperEl.dispatchEvent(evt);
+                    });
+                });
+            }
+        }
+        function EffectFade(_ref) {
+            let {swiper, extendParams, on} = _ref;
+            extendParams({
+                fadeEffect: {
+                    crossFade: false
+                }
+            });
+            const setTranslate = () => {
+                const {slides} = swiper;
+                const params = swiper.params.fadeEffect;
+                for (let i = 0; i < slides.length; i += 1) {
+                    const slideEl = swiper.slides[i];
+                    const offset = slideEl.swiperSlideOffset;
+                    let tx = -offset;
+                    if (!swiper.params.virtualTranslate) tx -= swiper.translate;
+                    let ty = 0;
+                    if (!swiper.isHorizontal()) {
+                        ty = tx;
+                        tx = 0;
+                    }
+                    const slideOpacity = swiper.params.fadeEffect.crossFade ? Math.max(1 - Math.abs(slideEl.progress), 0) : 1 + Math.min(Math.max(slideEl.progress, -1), 0);
+                    const targetEl = effect_target_effectTarget(params, slideEl);
+                    targetEl.style.opacity = slideOpacity;
+                    targetEl.style.transform = `translate3d(${tx}px, ${ty}px, 0px)`;
+                }
+            };
+            const setTransition = duration => {
+                const transformElements = swiper.slides.map(slideEl => utils_getSlideTransformEl(slideEl));
+                transformElements.forEach(el => {
+                    el.style.transitionDuration = `${duration}ms`;
+                });
+                effect_virtual_transition_end_effectVirtualTransitionEnd({
+                    swiper,
+                    duration,
+                    transformElements,
+                    allSlides: true
+                });
+            };
+            effect_init_effectInit({
+                effect: "fade",
+                swiper,
+                on,
+                setTranslate,
+                setTransition,
+                overwriteParams: () => ({
+                    slidesPerView: 1,
+                    slidesPerGroup: 1,
+                    watchSlidesProgress: true,
+                    spaceBetween: 0,
+                    virtualTranslate: !swiper.params.cssMode
+                })
+            });
+        }
         const newsItems = [ {
-            image: "img/news/image-01.jpg",
+            image: "img/news/image-01.webp",
             title: "igb live london",
             date: "July 1-4, 2025"
         }, {
-            image: "img/news/image-02.jpg",
+            image: "img/news/image-02.webp",
             title: "SiGMA Euro-Med Malta",
             date: "September 1-4, 2025"
         }, {
-            image: "img/news/image-03.jpg",
+            image: "img/news/image-03.webp",
             title: "affiliate world europe",
             date: "September 4-5, 2025"
         }, {
-            image: "img/news/image-01.jpg",
+            image: "img/news/image-01.webp",
             title: "igb live london",
             date: "July 1-4, 2025"
         } ];
@@ -15008,6 +15416,7 @@
                 console.log("Submitting the form:", data);
             };
             return react.createElement("section", {
+                id: "contacts",
                 className: "form-block"
             }, react.createElement("div", {
                 className: "form-block__container"
@@ -15078,93 +15487,6 @@
             })));
         };
         const homepage_FormSection = FormSection;
-        const PlatformsSection = () => react.createElement("section", {
-            className: "platforms"
-        }, react.createElement("div", {
-            className: "platforms__container blur-1 blur-2"
-        }, react.createElement("div", {
-            className: "platforms__wrapper"
-        }, react.createElement("div", {
-            className: "platforms__content"
-        }, react.createElement("h1", {
-            className: "platforms__title"
-        }, react.createElement("span", null, "PLATFORM"), react.createElement("br", null), "CRM", react.createElement("br", null), " RETENTION MODULE")), react.createElement("div", {
-            className: "platforms__image"
-        }, react.createElement("picture", null, react.createElement("source", {
-            media: "(max-width: 767.98px)",
-            srcSet: "img/main/main_image-03_mob.png"
-        }), react.createElement("source", {
-            media: "(min-width: 767.98px)",
-            srcSet: "img/main/main_image-03_pc.png"
-        }), react.createElement("img", {
-            src: "img/main/main_image-03_pc.png",
-            alt: ""
-        }))))));
-        const solutionspage_PlatformsSection = PlatformsSection;
-        const BenefitsSection = () => react.createElement("section", {
-            className: "benefits"
-        }, react.createElement("div", {
-            className: "benefits__container"
-        }, react.createElement("div", {
-            className: "benefits__main"
-        }, react.createElement("div", {
-            className: "benefits__top"
-        }, react.createElement("h2", {
-            className: "benefits__title"
-        }, "RELIABLE AND SCALABLE GAMING ", react.createElement("span", null, "PLATFORM")), react.createElement("div", {
-            className: "benefits__text text-mob "
-        }, "Thanks to high-availability cloud architecture and backup systems,", react.createElement("span", null, "SPINREE"), " delivers nonstop gaming performance, 24/7.")), react.createElement("div", {
-            className: "benefits__wrapper"
-        }, react.createElement("div", {
-            className: "benefits__item"
-        }, "Security"), react.createElement("div", {
-            className: "benefits__item"
-        }, "SCALABILITY"), react.createElement("div", {
-            className: "benefits__item"
-        }, "FLEXIBILITY"))), react.createElement("div", {
-            className: "benefits__bg"
-        })));
-        const solutionspage_BenefitsSection = BenefitsSection;
-        const GamificationSection = () => react.createElement("section", {
-            className: "gamification"
-        }, react.createElement("div", {
-            className: "gamification__container"
-        }, react.createElement("div", {
-            className: "gamification__main"
-        }, react.createElement("div", {
-            className: "gamification__top"
-        }, react.createElement("h2", {
-            className: "gamification__title"
-        }, react.createElement("span", null, "PLAYER-FOCUSED"), " GAMIFICATION SYSTEM"), react.createElement("div", {
-            className: "gamification__text text-mob"
-        }, "Focusing on client retention excellence, our platform enhances gameplay by refining every step of the user’s iGaming journey.")))));
-        const solutionspage_GamificationSection = GamificationSection;
-        const solutions = [ {
-            title: "Whitelabel",
-            subtitle: "Solution",
-            text: "A fast-launch solution based on pre-built templates. Ideal for rapid market entry without the need for deep technical involvement."
-        }, {
-            title: "Turnkey",
-            subtitle: "Solution",
-            text: "A fully customizable iGaming solution tailored to each client's business needs, including individual design, custom logic, and integrations."
-        } ];
-        const SolutionsSection = () => react.createElement("section", {
-            className: "solutions"
-        }, react.createElement("div", {
-            className: "solutions__container"
-        }, react.createElement("div", {
-            className: "solutions__wrapper"
-        }, solutions.map((item, index) => react.createElement("div", {
-            className: "solutions__item",
-            key: index
-        }, react.createElement("div", {
-            className: "solutions__title h2"
-        }, react.createElement("span", null, item.title), " ", item.subtitle), react.createElement("div", {
-            className: "solutions__text text-mob"
-        }, item.text)))), react.createElement("div", {
-            className: "solutions__bg"
-        })));
-        const solutionspage_SolutionsSection = SolutionsSection;
         function createDOMMotionComponentProxy(componentFactory) {
             if (typeof Proxy === "undefined") return componentFactory;
             const componentCache = new Map;
@@ -16948,12 +17270,6 @@
             if (!isOriginAnimatable || !isTargetAnimatable) return false;
             return hasKeyframesChanged(keyframes) || (type === "spring" || isGenerator(type)) && velocity;
         }
-        function is_object_isObject(value) {
-            return typeof value === "object" && value !== null;
-        }
-        function isHTMLElement(element) {
-            return is_object_isObject(element) && "offsetHeight" in element;
-        }
         const acceleratedValues = new Set([ "opacity", "clipPath", "filter", "transform" ]);
         const supportsWaapi = memo(() => Object.hasOwnProperty.call(Element.prototype, "animate"));
         function supportsBrowserAnimation(options) {
@@ -18266,23 +18582,7 @@
                 this.session && this.session.end();
             }
         }
-        var jsx_runtime = __webpack_require__(848);
         const {schedule: microtask, cancel: cancelMicrotask} = createRenderBatcher(queueMicrotask, false);
-        "use client";
-        const PresenceContext_PresenceContext = (0, react.createContext)(null);
-        function usePresence(subscribe = true) {
-            const context = (0, react.useContext)(PresenceContext_PresenceContext);
-            if (context === null) return [ true, null ];
-            const {isPresent, onExitComplete, register} = context;
-            const id = (0, react.useId)();
-            (0, react.useEffect)(() => {
-                if (subscribe) return register(id);
-            }, [ subscribe ]);
-            const safeToRemove = (0, react.useCallback)(() => subscribe && onExitComplete && onExitComplete(id), [ id, onExitComplete, subscribe ]);
-            return !isPresent && onExitComplete ? [ false, safeToRemove ] : [ true ];
-        }
-        "use client";
-        const LayoutGroupContext = (0, react.createContext)({});
         "use client";
         const SwitchLayoutGroupContext = (0, react.createContext)({});
         const globalProjectionState = {
@@ -19858,12 +20158,6 @@
             strict: false
         });
         "use client";
-        const MotionConfigContext = (0, react.createContext)({
-            transformPagePoint: p => p,
-            isStatic: false,
-            reducedMotion: "never"
-        });
-        "use client";
         const MotionContext = (0, react.createContext)({});
         function isControllingVariants(props) {
             return isAnimationControls(props.animate) || variantProps.some(name => isVariantLabel(props[name]));
@@ -19891,7 +20185,6 @@
         function variantLabelsAsDependency(prop) {
             return Array.isArray(prop) ? prop.join(" ") : prop;
         }
-        const is_browser_isBrowser = typeof window !== "undefined";
         const featureProps = {
             animation: [ "animate", "variants", "whileHover", "whileTap", "exit", "whileInView", "whileFocus", "whileDrag" ],
             exit: [ "exit" ],
@@ -19921,7 +20214,6 @@
                 if (externalRef) if (typeof externalRef === "function") externalRef(instance); else if (isRefObject(externalRef)) externalRef.current = instance;
             }, [ visualElement ]);
         }
-        const use_isomorphic_effect_useIsomorphicLayoutEffect = is_browser_isBrowser ? react.useLayoutEffect : react.useEffect;
         function useVisualElement(Component, visualState, props, createVisualElement, ProjectionNodeConstructor) {
             const {visualElement: parent} = (0, react.useContext)(MotionContext);
             const lazyContext = (0, react.useContext)(LazyContext);
@@ -20311,11 +20603,6 @@
                 });
             };
             return useRender;
-        }
-        function useConstant(init) {
-            const ref = (0, react.useRef)(null);
-            if (ref.current === null) ref.current = init();
-            return ref.current;
         }
         function makeState({scrapeMotionValuesFromProps, createRenderState}, props, context, presenceContext) {
             const state = {
@@ -20935,23 +21222,210 @@
             ...layout
         }, createDomVisualElement);
         const motion = createDOMMotionComponentProxy(createMotionComponent);
+        const PlatformsSection = () => react.createElement("section", {
+            className: "platforms"
+        }, react.createElement("div", {
+            className: "platforms__container blur-1 blur-2"
+        }, react.createElement("div", {
+            className: "platforms__wrapper"
+        }, react.createElement("div", {
+            className: "platforms__content"
+        }, react.createElement("h1", {
+            className: "platforms__title"
+        }, react.createElement("span", null, "PLATFORM"), react.createElement("br", null), "CRM", react.createElement("br", null), " RETENTION MODULE")), react.createElement("div", {
+            className: "platforms__image"
+        }, react.createElement("picture", null, react.createElement("source", {
+            media: "(max-width: 767.98px)",
+            srcSet: "img/main/main_image-03_mob.png"
+        }), react.createElement("source", {
+            media: "(min-width: 767.98px)",
+            srcSet: "img/main/main_image-03_pc.png"
+        }), react.createElement("img", {
+            src: "img/main/main_image-03_pc.png",
+            alt: ""
+        }))))));
+        const solutionspage_PlatformsSection = PlatformsSection;
+        const AdvantagesSection = () => react.createElement("section", {
+            className: "advantages"
+        }, react.createElement("div", {
+            className: "advantages__container"
+        }, react.createElement("div", {
+            className: "advantages__main"
+        }, react.createElement("div", {
+            className: "advantages__top"
+        }, react.createElement("h2", {
+            className: "advantages__title"
+        }, "RELIABLE AND SCALABLE GAMING ", react.createElement("span", null, "PLATFORM")), react.createElement("div", {
+            className: "advantages__text text-mob "
+        }, "Thanks to high-availability cloud architecture and backup systems,", react.createElement("span", null, "SPINREE"), " delivers nonstop gaming performance, 24/7.")), react.createElement("div", {
+            className: "advantages__wrapper"
+        }, react.createElement("div", {
+            className: "advantages__item"
+        }, "Security"), react.createElement("div", {
+            className: "advantages__item"
+        }, "SCALABILITY"), react.createElement("div", {
+            className: "advantages__item"
+        }, "FLEXIBILITY"))), react.createElement("div", {
+            className: "advantages__bg"
+        })));
+        const solutionspage_AdvantagesSection = AdvantagesSection;
+        const GamificationSection = () => react.createElement("section", {
+            className: "gamification"
+        }, react.createElement("div", {
+            className: "gamification__container"
+        }, react.createElement("div", {
+            className: "gamification__main"
+        }, react.createElement("div", {
+            className: "gamification__top"
+        }, react.createElement("h2", {
+            className: "gamification__title"
+        }, react.createElement("span", null, "PLAYER-FOCUSED"), " GAMIFICATION SYSTEM"), react.createElement("div", {
+            className: "gamification__text text-mob"
+        }, "Focusing on client retention excellence, our platform enhances gameplay by refining every step of the user’s iGaming journey.")))));
+        const solutionspage_GamificationSection = GamificationSection;
+        const newsSegmentations = [ {
+            title: "CRM",
+            image: "img/segmentations/image-01.webp",
+            content: [ "A variety of bonus mechanics: cashbacks, tiered VIP programs, and local jackpots.", "Full-scale communication via Email, SMS, Push notifications, and in-game messaging.", "Gamification elements to boost player engagement." ]
+        }, {
+            title: "SEGMENTATION",
+            image: "img/segmentations/image-02.webp",
+            content: [ "Flexible user segmentation based on behavioral and demographic data.", "Automatic segment updates and real-time response to player actions.", "Integration with CRM and bonus systems." ]
+        }, {
+            title: "payments",
+            image: "img/segmentations/image-03.webp",
+            content: [ "Supports Visa, MasterCard, Pix, Paytm, UPI, SPEI, Skrill, crypto (BTC, ETH), and more.", "Easy integration of new payment methods.", "Real-time transaction tracking." ]
+        }, {
+            title: "games",
+            image: "img/segmentations/image-04.webp",
+            content: [ "Over 10,000 games from leading global providers on competitive terms.", "Ability to add any game provider upon individual request.", "Option to include a sportsbook or virtual sports." ]
+        }, {
+            title: "backoffice",
+            image: "img/segmentations/image-05.webp",
+            content: [ "Flexible configuration of all business aspects: bonuses, payment systems, CRM.", "Detailed reporting and analytics to enable timely decision-making.", "Role-based access control (RBAC) to manage permissions for different team members." ]
+        } ];
+        const NewsSegmentationSlide = ({title, image, content}) => react.createElement("div", {
+            className: "segment__slide"
+        }, react.createElement("div", {
+            className: "segment__inner"
+        }, react.createElement("div", {
+            className: "segment__content"
+        }, react.createElement("ul", {
+            className: "segment__list"
+        }, content.map((item, idx) => react.createElement("li", {
+            className: "segment__item text-mob",
+            key: idx
+        }, item))), react.createElement("a", {
+            href: "#",
+            className: "segment__more"
+        }, "request info")), react.createElement("div", {
+            className: "segment__image"
+        }, react.createElement("img", {
+            src: image,
+            alt: title
+        }))));
+        const SegmentationSection = () => {
+            const [activeIndex, setActiveIndex] = (0, react.useState)(0);
+            const swiperRef = (0, react.useRef)(null);
+            const onSlideChange = swiper => {
+                setActiveIndex(swiper.activeIndex);
+            };
+            const goToSlide = index => {
+                if (swiperRef.current) swiperRef.current.slideTo(index);
+            };
+            return react.createElement("section", {
+                className: "segment"
+            }, react.createElement("div", {
+                className: "segment__container"
+            }, react.createElement("div", {
+                className: "segment__main"
+            }, react.createElement("div", {
+                className: "segment__titles"
+            }, newsSegmentations.map((item, idx) => react.createElement("button", {
+                key: idx,
+                className: `segment__title ${activeIndex === idx ? "segment__title--active" : ""}`,
+                onClick: () => goToSlide(idx),
+                type: "button"
+            }, item.title))), react.createElement("div", {
+                className: "segment__title-mobile"
+            }, react.createElement("button", {
+                className: "segment__nav-btn segment__nav-prev _icon-arrow-btn",
+                onClick: () => swiperRef.current?.slidePrev(),
+                disabled: activeIndex === 0,
+                "aria-label": "Previous slide",
+                type: "button"
+            }), react.createElement("span", {
+                className: "segment__title-mobile-text"
+            }, newsSegmentations[activeIndex]?.title), react.createElement("button", {
+                className: "segment__nav-btn segment__nav-next _icon-arrow-btn",
+                onClick: () => swiperRef.current?.slideNext(),
+                disabled: activeIndex === newsSegmentations.length - 1,
+                "aria-label": "Next slide",
+                type: "button"
+            })), react.createElement(swiper_react_Swiper, {
+                modules: [ Pagination, EffectFade ],
+                onSwiper: swiper => swiperRef.current = swiper,
+                onSlideChange,
+                effect: "fade",
+                fadeEffect: {
+                    crossFade: true
+                },
+                observer: true,
+                observeParents: true,
+                slidesPerView: 1,
+                spaceBetween: 16,
+                speed: 400,
+                pagination: {
+                    clickable: true
+                }
+            }, newsSegmentations.map((item, index) => react.createElement(SwiperSlide, {
+                key: index
+            }, react.createElement(NewsSegmentationSlide, item)))))));
+        };
+        const solutionspage_SegmentationSection = SegmentationSection;
+        const solutions = [ {
+            title: "Whitelabel",
+            subtitle: "Solution",
+            text: "A fast-launch solution based on pre-built templates. Ideal for rapid market entry without the need for deep technical involvement."
+        }, {
+            title: "Turnkey",
+            subtitle: "Solution",
+            text: "A fully customizable iGaming solution tailored to each client's business needs, including individual design, custom logic, and integrations."
+        } ];
+        const SolutionsSection = () => react.createElement("section", {
+            className: "solutions"
+        }, react.createElement("div", {
+            className: "solutions__container"
+        }, react.createElement("div", {
+            className: "solutions__wrapper"
+        }, solutions.map((item, index) => react.createElement("div", {
+            className: "solutions__item",
+            key: index
+        }, react.createElement("div", {
+            className: "solutions__title h2"
+        }, react.createElement("span", null, item.title), " ", item.subtitle), react.createElement("div", {
+            className: "solutions__text text-mob"
+        }, item.text)))), react.createElement("div", {
+            className: "solutions__bg"
+        })));
+        const solutionspage_SolutionsSection = SolutionsSection;
         const AdditionalServicesSection = () => {
             const services = [ {
                 title: react.createElement(react.Fragment, null, react.createElement("span", null, "Game"), " Aggregation"),
                 text: "API access to thousands of games from top global providers, including slots, live casino, virtual games and more.",
-                image: "img/services/image-01.jpg"
+                image: "img/services/image-01.webp"
             }, {
                 title: react.createElement(react.Fragment, null, "Technical ", react.createElement("span", null, "support"), " and updates"),
                 text: "SpinRee's Game Aggregation saves integration resources and allows you to focus on growth and player retention.",
-                image: "img/services/image-02.jpg"
+                image: "img/services/image-02.webp"
             }, {
                 title: react.createElement(react.Fragment, null, react.createElement("span", null, "Blockchain"), " & Web 3.0 Development"),
                 text: "Extensive expertise in developing and implementing decentralized solutions for iGaming and related industries.",
-                image: "img/services/image-03.jpg"
+                image: "img/services/image-03.webp"
             }, {
                 title: react.createElement(react.Fragment, null, "Assistance with ", react.createElement("span", null, "crypto payment"), " systems"),
                 text: "Consulting on Web 3.0 strategy, legalization, and licensing Audits, scalability planning, and technical support.",
-                image: "img/services/image-04.jpg"
+                image: "img/services/image-04.webp"
             } ];
             return react.createElement("section", {
                 className: "additional-services"
@@ -20997,18 +21471,43 @@
         };
         const solutionspage_AdditionalServicesSection = AdditionalServicesSection;
         function SolutionsPage() {
-            return react.createElement(react.Fragment, null, react.createElement(Header, null), react.createElement("main", null, react.createElement(solutionspage_PlatformsSection, null), react.createElement(solutionspage_BenefitsSection, null), react.createElement(solutionspage_GamificationSection, null), react.createElement(solutionspage_SolutionsSection, null), react.createElement(solutionspage_AdditionalServicesSection, null), react.createElement(homepage_FormSection, null)), react.createElement(Footer, null));
+            return react.createElement(motion.div, {
+                initial: {
+                    opacity: 0,
+                    y: 20
+                },
+                animate: {
+                    opacity: 1,
+                    y: 0
+                },
+                exit: {
+                    opacity: 0,
+                    y: -20
+                },
+                transition: {
+                    duration: .2
+                }
+            }, react.createElement(Header, null), react.createElement("main", null, react.createElement(solutionspage_PlatformsSection, null), react.createElement(solutionspage_AdvantagesSection, null), react.createElement(solutionspage_GamificationSection, null), react.createElement(solutionspage_SegmentationSection, null), react.createElement(solutionspage_SolutionsSection, null), react.createElement(solutionspage_AdditionalServicesSection, null), react.createElement(homepage_FormSection, null)), react.createElement(Footer, null));
         }
         const src_SolutionsPage = SolutionsPage;
-        const App = () => react.createElement(react.Fragment, null, react.createElement(Header, null), react.createElement("main", null, react.createElement(homepage_MainSection, null), react.createElement(homepage_PromoSection, null), react.createElement(homepage_ServicesSection, null), react.createElement(homepage_AdvantagesSection, null), react.createElement(homepage_NewsSection, null), react.createElement(homepage_FormSection, null)), react.createElement(Footer, null));
-        const root = document.querySelector("#root") ? document.querySelector("#root") : document.querySelector(".wrapper");
-        client.createRoot(root).render(react.createElement(react.StrictMode, null, react.createElement(HashRouter, null, react.createElement(Routes, null, react.createElement(Route, {
-            path: "/",
-            element: react.createElement(App, null)
-        }), react.createElement(Route, {
-            path: "/solutions",
-            element: react.createElement(src_SolutionsPage, null)
-        })))));
+        const App = () => react.createElement(react.Fragment, null, react.createElement(Header, null), react.createElement("main", null, react.createElement(homepage_MainSection, null), react.createElement(AboutSection, null), react.createElement(homepage_ServicesSection, null), react.createElement(homepage_BenefitsSection, null), react.createElement(homepage_NewsSection, null), react.createElement(homepage_FormSection, null)), react.createElement(Footer, null));
+        const AnimatedRoutes = () => {
+            const location = useLocation();
+            return react.createElement(AnimatePresence, {
+                mode: "wait"
+            }, react.createElement(Routes, {
+                location,
+                key: location.pathname
+            }, react.createElement(Route, {
+                path: "/",
+                element: react.createElement(App, null)
+            }), react.createElement(Route, {
+                path: "/solutions",
+                element: react.createElement(src_SolutionsPage, null)
+            })));
+        };
+        const root = document.querySelector("#root") || document.querySelector(".wrapper");
+        client.createRoot(root).render(react.createElement(react.StrictMode, null, react.createElement(HashRouter, null, react.createElement(AnimatedRoutes, null))));
         let bodyLockStatus = true;
         let bodyLockToggle = (delay = 0) => {
             if (document.documentElement.classList.contains("lock")) bodyUnlock(delay); else bodyLock(delay);
