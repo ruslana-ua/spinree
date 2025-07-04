@@ -21236,12 +21236,12 @@
             className: "platforms__image"
         }, react.createElement("picture", null, react.createElement("source", {
             media: "(max-width: 767.98px)",
-            srcSet: "img/main/main_image-03_mob.png"
+            srcSet: "img/main/main_image-03_mob.webp"
         }), react.createElement("source", {
             media: "(min-width: 767.98px)",
-            srcSet: "img/main/main_image-03_pc.png"
+            srcSet: "img/main/main_image-03_pc.webp"
         }), react.createElement("img", {
-            src: "img/main/main_image-03_pc.png",
+            src: "img/main/main_image-03_pc.webp",
             alt: ""
         }))))));
         const solutionspage_PlatformsSection = PlatformsSection;
