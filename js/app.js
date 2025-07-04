@@ -10347,8 +10347,8 @@
             href: "#",
             icon: "_icon-linkedin"
         }, {
-            href: "#",
-            icon: "_icon-whatsapp"
+            href: "mailto:general@techflick.ltd",
+            icon: "_icon-mail"
         } ];
         function FooterSocials() {
             return react.createElement("div", {

@@ -103,6 +103,13 @@
   -webkit-mask-image: url(../img/icons/whatsapp.webp);
   mask-image: url(../img/icons/whatsapp.webp)
 }
+._icon-mail::before {
+  width: 25px;
+  height: 25px;
+  background-color: var(--black);
+  -webkit-mask-image: url(../img/icons/mail.webp);
+  mask-image: url(../img/icons/mail.webp)
+}
 :root {
   --black: #000000;
   --wh: #ffffff;
