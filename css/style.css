@@ -1435,8 +1435,8 @@ p {
   padding-bottom: 10%
 }
 .platforms__image img {
-  width: 520px;
-  height: 462px;
+  width: 475px;
+  height: 428px;
   -o-object-fit: contain;
   object-fit: contain;
   -webkit-animation-name: pulse;

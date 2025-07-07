@@ -10292,7 +10292,7 @@
                 className: "header__actions",
                 ref: actionsRef
             }, react.createElement("a", {
-                href: "#",
+                href: "https://t.me/sales_spinree",
                 className: "header__button _icon-arrow",
                 ref: buttonRef
             }, "JOIN US"), react.createElement("button", {
@@ -10632,7 +10632,7 @@
             }, title), react.createElement("div", {
                 className: "news__date"
             }, date)), react.createElement("a", {
-                href: "#contacts",
+                href: "https://t.me/sales_spinree",
                 className: "news__button",
                 onClick: e => goToAnchor(e, "#contacts")
             }, "book the meeting")));
@@ -15290,6 +15290,7 @@
             date: "July 1-4, 2025"
         } ];
         const NewsSection = () => react.createElement("section", {
+            id: "news",
             className: "news"
         }, react.createElement("div", {
             className: "news__container blur-1 blur-2"
@@ -21256,8 +21257,8 @@
         }, react.createElement("h2", {
             className: "advantages__title"
         }, "RELIABLE AND SCALABLE GAMING ", react.createElement("span", null, "PLATFORM")), react.createElement("div", {
-            className: "advantages__text text-mob "
-        }, "Thanks to high-availability cloud architecture and backup systems,", react.createElement("span", null, "SPINREE"), " delivers nonstop gaming performance, 24/7.")), react.createElement("div", {
+            className: "advantages__text text-mob"
+        }, "Thanks to high-availability cloud architecture and backup systems,", " ", react.createElement("br", null), react.createElement("span", null, "SPINREE"), " delivers nonstop gaming performance, 24/7.")), react.createElement("div", {
             className: "advantages__wrapper"
         }, react.createElement("div", {
             className: "advantages__item"
@@ -21316,7 +21317,7 @@
             className: "segment__item text-mob",
             key: idx
         }, item))), react.createElement("a", {
-            href: "#",
+            href: "https://t.me/sales_spinree",
             className: "segment__more"
         }, "request info")), react.createElement("div", {
             className: "segment__image"
