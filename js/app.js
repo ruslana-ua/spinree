@@ -10334,31 +10334,6 @@
                 onClick: e => goToAnchor(e, item.href)
             }, item.label)))));
         }
-        const socials = [ {
-            href: "#",
-            icon: "_icon-facebook"
-        }, {
-            href: "#",
-            icon: "_icon-instagram"
-        }, {
-            href: "https://t.me/sales_spinree",
-            icon: "_icon-telegram"
-        }, {
-            href: "#",
-            icon: "_icon-linkedin"
-        }, {
-            href: "mailto:general@techflick.ltd",
-            icon: "_icon-mail"
-        } ];
-        function FooterSocials() {
-            return react.createElement("div", {
-                className: "footer__socials socials"
-            }, socials.map((social, i) => react.createElement("a", {
-                key: i,
-                href: social.href,
-                className: `socials__link ${social.icon}`
-            })));
-        }
         function Footer() {
             return react.createElement("footer", {
                 className: "footer"
@@ -10366,58 +10341,54 @@
                 className: "footer__container"
             }, react.createElement("div", {
                 className: "footer__wrapper"
-            }, react.createElement(FooterNav, null), react.createElement(FooterSocials, null)), react.createElement("div", {
+            }, react.createElement(FooterNav, null)), react.createElement("div", {
                 className: "footer__copyright text-xs"
             }, "Copyright ©", " ", react.createElement("span", {
                 className: "footer__year"
             }, (new Date).getFullYear()), " ", "Spinree.com")));
         }
-        const MainSection = () => {
-            const goToAnchor = useAnchorNavigate();
-            return react.createElement("section", {
-                className: "main"
-            }, react.createElement("div", {
-                className: "main__container blur-1 blur-2"
-            }, react.createElement("div", {
-                className: "main__content"
-            }, react.createElement("h1", {
-                className: "main__title"
-            }, "Tech that performs, ", react.createElement("span", null, "partnerships"), " that win!"), react.createElement("div", {
-                className: "main__text"
-            }, "All-in-one and white-label online casino solutions — partnering for success!"), react.createElement("a", {
-                href: "#contacts",
-                className: "main__button btn",
-                onClick: e => goToAnchor(e, "#contacts")
-            }, react.createElement("div", {
-                className: "btn__icon _icon-arrow-down"
-            }), react.createElement("div", {
-                className: "btn__text"
-            }, "send a request"))), react.createElement("div", {
-                className: "main__backgrounds"
-            }, react.createElement("div", {
-                className: "main__background main__background-1"
-            }, react.createElement("picture", null, react.createElement("source", {
-                media: "(max-width: 767.98px)",
-                srcSet: "img/main/main_image-01_mob.webp"
-            }), react.createElement("source", {
-                media: "(min-width: 767.98px)",
-                srcSet: "img/main/main_image-01_pc.webp"
-            }), react.createElement("img", {
-                src: "img/main/main_image-01_pc.webp",
-                alt: ""
-            }))), react.createElement("div", {
-                className: "main__background main__background-2"
-            }, react.createElement("picture", null, react.createElement("source", {
-                media: "(max-width: 767.98px)",
-                srcSet: "img/main/main_image-02_mob.webp"
-            }), react.createElement("source", {
-                media: "(min-width: 767.98px)",
-                srcSet: "img/main/main_image-02_pc.webp"
-            }), react.createElement("img", {
-                src: "img/main/main_image-02_pc.webp",
-                alt: ""
-            }))))));
-        };
+        const MainSection = () => react.createElement("section", {
+            className: "main"
+        }, react.createElement("div", {
+            className: "main__container blur-1 blur-2"
+        }, react.createElement("div", {
+            className: "main__content"
+        }, react.createElement("h1", {
+            className: "main__title"
+        }, "Tech that performs, ", react.createElement("span", null, "partnerships"), " that win!"), react.createElement("div", {
+            className: "main__text"
+        }, "All-in-one and white-label online casino solutions — partnering for success!"), react.createElement("a", {
+            href: "https://t.me/sales_spinree",
+            className: "main__button btn"
+        }, react.createElement("div", {
+            className: "btn__icon _icon-telegram-blue"
+        }), react.createElement("div", {
+            className: "btn__text"
+        }, "REACH OUT"))), react.createElement("div", {
+            className: "main__backgrounds"
+        }, react.createElement("div", {
+            className: "main__background main__background-1"
+        }, react.createElement("picture", null, react.createElement("source", {
+            media: "(max-width: 767.98px)",
+            srcSet: "img/main/main_image-01_mob.webp"
+        }), react.createElement("source", {
+            media: "(min-width: 767.98px)",
+            srcSet: "img/main/main_image-01_pc.webp"
+        }), react.createElement("img", {
+            src: "img/main/main_image-01_pc.webp",
+            alt: ""
+        }))), react.createElement("div", {
+            className: "main__background main__background-2"
+        }, react.createElement("picture", null, react.createElement("source", {
+            media: "(max-width: 767.98px)",
+            srcSet: "img/main/main_image-02_mob.webp"
+        }), react.createElement("source", {
+            media: "(min-width: 767.98px)",
+            srcSet: "img/main/main_image-02_pc.webp"
+        }), react.createElement("img", {
+            src: "img/main/main_image-02_pc.webp",
+            alt: ""
+        }))))));
         const homepage_MainSection = MainSection;
         const PromoSection = () => {
             const goToAnchor = useAnchorNavigate();
@@ -15345,149 +15316,64 @@
             key: index
         }, react.createElement(homepage_NewsSlide, item))))));
         const homepage_NewsSection = NewsSection;
-        function useFormValidate(initialValues) {
-            const [formData, setFormData] = (0, react.useState)(initialValues);
-            const [errors, setErrors] = (0, react.useState)({});
-            const validateInput = (name, value) => {
-                let error = "";
-                if (name === "firstName") {
-                    if (!/[a-zA-Zа-яА-Я]{2,}$/.test(value.trim())) error = "Enter a valid name (min 2 letters)";
-                } else if (name === "email") {
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim())) error = "Enter a valid e-mail";
-                } else if (name === "message") {
-                    if (value.trim().length < 10) error = "Message must be at least 10 characters";
-                } else if (name === "agree") if (!value) error = "You must agree to continue";
-                return error;
-            };
-            const addError = (name, message) => {
-                setErrors(prev => ({
-                    ...prev,
-                    [name]: message
-                }));
-            };
-            const removeError = name => {
-                setErrors(prev => {
-                    const newErrors = {
-                        ...prev
-                    };
-                    delete newErrors[name];
-                    return newErrors;
-                });
-            };
-            const handleChange = e => {
-                const {name, type, value, checked} = e.target;
-                const newValue = type === "checkbox" ? checked : value;
-                setFormData(prev => ({
-                    ...prev,
-                    [name]: newValue
-                }));
-                if (errors[name]) {
-                    const error = validateInput(name, newValue);
-                    if (error) addError(name, error); else removeError(name);
-                }
-            };
-            const handleSubmit = callback => e => {
-                e.preventDefault();
-                let newErrors = {};
-                Object.entries(formData).forEach(([name, value]) => {
-                    const error = validateInput(name, value);
-                    if (error) newErrors[name] = error;
-                });
-                if (Object.keys(newErrors).length > 0) setErrors(newErrors); else {
-                    setErrors({});
-                    callback(formData);
-                    setFormData(initialValues);
-                }
-            };
-            return {
-                formData,
-                errors,
-                handleChange,
-                handleSubmit
-            };
+        const socials = [ {
+            href: "mailto:general@techflick.ltd",
+            icon: "_icon-mail",
+            name: "E-Mail"
+        }, {
+            href: "https://t.me/spinree_b2b_solutions",
+            icon: "_icon-telegram",
+            name: "Telegram"
+        }, {
+            href: "https://www.instagram.com/spinree_group",
+            icon: "_icon-instagram",
+            name: "Instagram"
+        }, {
+            href: "#",
+            icon: "_icon-facebook",
+            name: "Facebook"
+        }, {
+            href: "https://www.linkedin.com/company/spinree-software-provider",
+            icon: "_icon-linkedin",
+            name: "LinkedIn"
+        } ];
+        function Socials() {
+            return react.createElement("div", {
+                className: "contacts__socials socials"
+            }, socials.map((social, i) => react.createElement("a", {
+                key: i,
+                href: social.href,
+                className: "socials__link"
+            }, react.createElement("div", {
+                className: `socials__icon ${social.icon}`
+            }), react.createElement("div", {
+                className: "socials__name"
+            }, social.name))));
         }
-        const FormSection = () => {
-            const {formData, errors, handleChange, handleSubmit} = useFormValidate({
-                firstName: "",
-                email: "",
-                message: "",
-                agree: true
-            });
-            const submitForm = data => {
-                console.log("Submitting the form:", data);
-            };
-            return react.createElement("section", {
-                id: "contacts",
-                className: "form-block"
-            }, react.createElement("div", {
-                className: "form-block__container"
-            }, react.createElement("div", {
-                className: "form-block__content"
-            }, react.createElement("div", {
-                className: "form-block__top"
-            }, react.createElement("div", {
-                className: "form-block__title h2"
-            }, "LET'S FIND ", react.createElement("br", null), react.createElement("span", null, "THE BEST"), " SOLUTION FOR YOU"), react.createElement("div", {
-                className: "form-block__text text-mob"
-            }, "Contact us anytime — we handle each partnership individually.")), react.createElement("form", {
-                className: "form-block__main form",
-                onSubmit: handleSubmit(submitForm)
-            }, react.createElement("div", {
-                className: "form__wrapper"
-            }, react.createElement("div", {
-                className: "form__item"
-            }, react.createElement("input", {
-                type: "text",
-                name: "firstName",
-                className: `form__input ${errors.firstName ? "_form-error" : ""}`,
-                placeholder: "Name",
-                value: formData.firstName,
-                onChange: handleChange
-            }), errors.firstName && react.createElement("div", {
-                className: "form__error"
-            }, errors.firstName)), react.createElement("div", {
-                className: "form__item"
-            }, react.createElement("input", {
-                type: "text",
-                name: "email",
-                className: `form__input ${errors.email ? "_form-error" : ""}`,
-                placeholder: "E-mail",
-                value: formData.email,
-                onChange: handleChange
-            }), errors.email && react.createElement("div", {
-                className: "form__error"
-            }, errors.email)), react.createElement("div", {
-                className: "form__item"
-            }, react.createElement("textarea", {
-                name: "message",
-                className: `form__input ${errors.message ? "_form-error" : ""}`,
-                placeholder: "Message",
-                value: formData.message,
-                onChange: handleChange
-            }), errors.message && react.createElement("div", {
-                className: "form__error"
-            }, errors.message))), react.createElement("div", {
-                className: "form__checkbox checkbox"
-            }, react.createElement("input", {
-                className: "checkbox__input",
-                type: "checkbox",
-                id: "agree-checkbox",
-                name: "agree",
-                checked: formData.agree,
-                onChange: handleChange
-            }), react.createElement("label", {
-                htmlFor: "agree-checkbox",
-                className: "checkbox__label"
-            }, react.createElement("span", null, "I understand that my personal data will be processed in accordance with the PikeBit")), errors.agree && react.createElement("div", {
-                className: "form__error"
-            }, errors.agree)), react.createElement("button", {
-                type: "submit",
-                className: "form__button"
-            }, "Submit request"))), react.createElement("div", {
-                className: "form-block__bg"
-            })));
-        };
-        const homepage_FormSection = FormSection;
+        const СontactsSection = () => react.createElement("section", {
+            id: "contacts",
+            className: "contacts"
+        }, react.createElement("div", {
+            className: "contacts__container"
+        }, react.createElement("div", {
+            className: "contacts__content"
+        }, react.createElement("div", {
+            className: "contacts__top"
+        }, react.createElement("div", {
+            className: "contacts__title h2"
+        }, "LET'S FIND ", react.createElement("br", null), react.createElement("span", null, "THE BEST"), " SOLUTION FOR YOU"), react.createElement("div", {
+            className: "contacts__text text-mob"
+        }, "Contact us anytime — we handle each partnership individually.")), react.createElement("a", {
+            href: "https://t.me/sales_spinree",
+            className: "contacts__button btn"
+        }, react.createElement("div", {
+            className: "btn__icon _icon-telegram-blue"
+        }), react.createElement("div", {
+            className: "btn__text"
+        }, "REACH OUT"))), react.createElement(Socials, null), react.createElement("div", {
+            className: "contacts__bg"
+        })));
+        const _ontactsSection = СontactsSection;
         function createDOMMotionComponentProxy(componentFactory) {
             if (typeof Proxy === "undefined") return componentFactory;
             const componentCache = new Map;
@@ -21488,10 +21374,10 @@
                 transition: {
                     duration: .2
                 }
-            }, react.createElement(Header, null), react.createElement("main", null, react.createElement(solutionspage_PlatformsSection, null), react.createElement(solutionspage_AdvantagesSection, null), react.createElement(solutionspage_GamificationSection, null), react.createElement(solutionspage_SegmentationSection, null), react.createElement(solutionspage_SolutionsSection, null), react.createElement(solutionspage_AdditionalServicesSection, null), react.createElement(homepage_FormSection, null)), react.createElement(Footer, null));
+            }, react.createElement(Header, null), react.createElement("main", null, react.createElement(solutionspage_PlatformsSection, null), react.createElement(solutionspage_AdvantagesSection, null), react.createElement(solutionspage_GamificationSection, null), react.createElement(solutionspage_SegmentationSection, null), react.createElement(solutionspage_SolutionsSection, null), react.createElement(solutionspage_AdditionalServicesSection, null), react.createElement(_ontactsSection, null)), react.createElement(Footer, null));
         }
         const src_SolutionsPage = SolutionsPage;
-        const App = () => react.createElement(react.Fragment, null, react.createElement(Header, null), react.createElement("main", null, react.createElement(homepage_MainSection, null), react.createElement(AboutSection, null), react.createElement(homepage_ServicesSection, null), react.createElement(homepage_BenefitsSection, null), react.createElement(homepage_NewsSection, null), react.createElement(homepage_FormSection, null)), react.createElement(Footer, null));
+        const App = () => react.createElement(react.Fragment, null, react.createElement(Header, null), react.createElement("main", null, react.createElement(homepage_MainSection, null), react.createElement(AboutSection, null), react.createElement(homepage_ServicesSection, null), react.createElement(homepage_BenefitsSection, null), react.createElement(homepage_NewsSection, null), react.createElement(_ontactsSection, null)), react.createElement(Footer, null));
         const AnimatedRoutes = () => {
             const location = useLocation();
             return react.createElement(AnimatePresence, {
